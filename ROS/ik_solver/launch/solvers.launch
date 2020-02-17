@@ -1,0 +1,16 @@
+<launch>
+  <node
+    pkg="ik_solver"
+    type="iiwa_calc"
+    name="iiwa_calc"
+    launch-prefix="xterm -e"
+    output="screen"
+  />
+  <node
+    pkg="ik_solver"
+    type="ur_calc"
+    name="ur_calc"
+    launch-prefix="xterm -e"
+    output="screen"
+  />
+</launch>
