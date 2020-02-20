@@ -10,11 +10,11 @@ from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
 from math import pi, sqrt
 
-class MoveItUrInterface(object):
+class MoveItIiwaInterface(object):
   
   def __init__(self):
-    "UR node constructor"
-    super(MoveItUrInterface, self).__init__()
+    "IIWA node constructor"
+    super(MoveItIiwaInterface, self).__init__()
     # initialize
     moveit_commander.roscpp_initialize(sys.argv)
     # init node
@@ -23,7 +23,7 @@ class MoveItUrInterface(object):
     rospy.Subscriber('/cmd/Trajectory', PoseStateArray, self.callback)
     # read robot state    
     self.currentState = ()
-    rospy.Subscriber('/UR10e/state/JointsPosition', JointState, self.stateCallback)
+    rospy.Subscriber('/iiwa/state/JointsPosition', JointState, self.stateCallback)
     # robot interface
     self.robot = moveit_commander.RobotCommander()
     # joint group
@@ -35,21 +35,20 @@ class MoveItUrInterface(object):
     # new trajectory
     self.isNew = False
     # name
-    self.robotName = "UR10e"
+    self.robotName = "Iiwa14"
     # control message
     self.msg = JointTrajectory()
-    self.msg.joint_names = ["j1","j2","j3","j4","j5","j6","gripper"]
+    self.msg.joint_names = ["j1","j2","j3","j4","j5","j6","j7","gripper"]
     self.msg.header.frame_id = self.robotName    
     # wait for current state
-    while not self.currentState:
-      print "Waiting for connection..."
-      time.sleep(2)
-    self.group.go(self.currentState, wait=True)
-    #initial = [0,-pi/2,pi/2,-pi/2,-pi/2,0]
-    #initial = [0,-pi/2,0,-pi/2,0,0]
-    #self.group.go(initial, wait=True)
+    #while not self.currentState:
+    #  print "Waiting for connection..."
+    #  time.sleep(2)
+    #self.group.go(self.currentState, wait=True)
+    initial = [0,0.5,0,-1.4,0,1.22,0]
+    self.group.go(initial, wait=True)
     #print self.group.get_current_pose()
-    print "MoveIt! UR interface is prepared"
+    print "MoveIt! Iiwa interface is prepared"
   
   def evalAndPublish(self):
     "Define trajectory points and publish result"
@@ -94,15 +93,16 @@ class MoveItUrInterface(object):
       # copy daya
       p = Pose()
       #p.position = pose.position
-      p.position.x = -pose.position.x / 1000
-      p.position.y = -pose.position.y / 1000
+      p.position.x = pose.position.x / 1000
+      p.position.y = pose.position.y / 1000
       p.position.z = pose.position.z / 1000
       #p.orientation = pose.orientation
-      q = self.rotate(pose.orientation)
-      p.orientation.w = q[0]
-      p.orientation.x = q[1]
-      p.orientation.y = q[2]
-      p.orientation.z = q[3]
+      #q = self.rotate(pose.orientation)
+      q = pose.orientation
+      p.orientation.w = q.w
+      p.orientation.x = q.x
+      p.orientation.y = q.y
+      p.orientation.z = q.z
       gr = 1.0 if pose.gripperOpen else 0.0
       # duplicate points when gripper change state
       self.trajectory.append(p)
@@ -155,7 +155,7 @@ class MoveItUrInterface(object):
 print "Waiting for MoveIt!..."
 time.sleep(4)
       
-robot = MoveItUrInterface()
+robot = MoveItIiwaInterface()
 rate = rospy.Rate(10)
 
 while not rospy.is_shutdown():
